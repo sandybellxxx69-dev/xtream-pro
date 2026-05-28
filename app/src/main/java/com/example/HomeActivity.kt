@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.BackHandler
 import coil.compose.AsyncImage
 import com.example.api.RetrofitClient
 import com.example.api.XtreamApi
@@ -115,7 +116,7 @@ fun HomeScreen(onLogout: () -> Unit, onPlay: (String) -> Unit) {
             when (selectedTab) {
                 0 -> LiveTvScreen(api, user, pass, serverUrl, onPlay)
                 1 -> VodScreen(api, user, pass, serverUrl, onPlay)
-                2 -> Text("Series coming soon", color = Color.White, modifier = Modifier.align(Alignment.Center))
+                2 -> SeriesScreen(api, user, pass, serverUrl, onPlay)
             }
         }
     }
@@ -307,6 +308,159 @@ fun VodScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, onP
                             }
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Text(stream.name, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SeriesScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, onPlay: (String) -> Unit) {
+    var categories by remember { mutableStateOf<List<Category>>(emptyList()) }
+    var selectedCategory by remember { mutableStateOf<Category?>(null) }
+    var seriesList by remember { mutableStateOf<List<com.example.model.SeriesStream>>(emptyList()) }
+    var selectedSeries by remember { mutableStateOf<com.example.model.SeriesStream?>(null) }
+    var seriesInfo by remember { mutableStateOf<com.example.model.SeriesInfoResponse?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        isLoading = true
+        try {
+            categories = api.getSeriesCategories(user, pass)
+            if (categories.isNotEmpty()) {
+                selectedCategory = categories.first()
+            }
+        } catch (e: Exception) { }
+        finally { isLoading = false }
+    }
+
+    LaunchedEffect(selectedCategory) {
+        selectedCategory?.let { category ->
+            isLoading = true
+            try {
+                seriesList = api.getSeries(user, pass, categoryId = category.categoryId)
+            } catch (e: Exception) { }
+            finally { isLoading = false }
+        }
+    }
+
+    LaunchedEffect(selectedSeries) {
+        selectedSeries?.let { series ->
+            isLoading = true
+            try {
+                seriesInfo = api.getSeriesInfo(user, pass, seriesId = series.seriesId)
+            } catch (e: Exception) { }
+            finally { isLoading = false }
+        }
+    }
+
+    if (selectedSeries != null) {
+        BackHandler {
+            selectedSeries = null
+            seriesInfo = null
+        }
+        
+        if (isLoading) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = PrimaryRed) }
+        } else {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                item {
+                    Row(modifier = Modifier.padding(16.dp)) {
+                         AsyncImage(
+                              model = seriesInfo?.info?.cover ?: selectedSeries?.cover ?: "https://via.placeholder.com/300x450/e94560/ffffff?text=Series",
+                              contentDescription = selectedSeries?.name,
+                              modifier = Modifier.width(120.dp).aspectRatio(2f/3f).clip(RoundedCornerShape(8.dp)),
+                              contentScale = ContentScale.Crop
+                         )
+                         Spacer(modifier = Modifier.width(16.dp))
+                         Column {
+                              Text(selectedSeries?.name ?: "", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                              Spacer(modifier = Modifier.height(8.dp))
+                              Text(seriesInfo?.info?.plot ?: selectedSeries?.plot ?: "", color = TextGray, fontSize = 14.sp)
+                         }
+                    }
+                }
+                
+                seriesInfo?.episodes?.let { episodesMap ->
+                    episodesMap.forEach { (season, episodes) ->
+                        item {
+                            Text("Season $season", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(16.dp))
+                        }
+                        items(episodes) { episode ->
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+                                    .clickable {
+                                        val ext = episode.containerExtension ?: "mp4"
+                                        val url = "$serverUrl/series/$user/$pass/${episode.id}.$ext"
+                                        onPlay(url)
+                                    }
+                            ) {
+                                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.PlayCircle, contentDescription = "Play", tint = PrimaryRed)
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Column {
+                                        Text(episode.title.takeIf { !it.isNullOrBlank() } ?: "Episode ${episode.episodeNum}", color = Color.White, fontWeight = FontWeight.SemiBold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        Column(modifier = Modifier.fillMaxSize()) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(categories) { category ->
+                    val isSelected = selectedCategory == category
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (isSelected) PrimaryRed else Color.White.copy(alpha = 0.1f))
+                            .clickable { selectedCategory = category }
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(category.categoryName, color = if (isSelected) Color.White else TextGray, fontSize = 14.sp)
+                    }
+                }
+            }
+
+            if (isLoading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = PrimaryRed) }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(seriesList) { series ->
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.clickable {
+                                selectedSeries = series
+                            }
+                        ) {
+                            Column {
+                                Box(modifier = Modifier.fillMaxWidth().aspectRatio(2f/3f)) {
+                                    AsyncImage(
+                                        model = series.cover ?: "https://via.placeholder.com/300x450/e94560/ffffff?text=Series",
+                                        contentDescription = series.name,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(series.name, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                                }
                             }
                         }
                     }

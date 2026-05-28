@@ -78,3 +78,34 @@ data class SeriesStream(
     val rating: String?,
     @SerializedName("category_id") val categoryId: String?
 )
+
+data class SeriesInfoResponse(
+    val info: SeriesInfoDetail?,
+    val episodes: Map<String, List<Episode>>?
+)
+
+data class SeriesInfoDetail(
+    val name: String?,
+    val cover: String?,
+    val plot: String?,
+    val cast: String?,
+    val director: String?,
+    val genre: String?,
+    val releaseDate: String?,
+    val rating: String?
+)
+
+data class Episode(
+    val id: String,
+    @SerializedName("episode_num") val episodeNum: String?,
+    val title: String,
+    @SerializedName("container_extension") val containerExtension: String?,
+    val season: Int?,
+    val info: EpisodeInfo?
+)
+
+data class EpisodeInfo(
+    @SerializedName("movie_image") val movieImage: String?,
+    val plot: String?,
+    val duration: String?
+)
