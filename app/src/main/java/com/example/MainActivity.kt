@@ -11,7 +11,9 @@ class MainActivity : ComponentActivity() {
         
         val sessionManager = SessionManager(this)
         
-        if (sessionManager.isLoggedIn()) {
+        if (sessionManager.getDeviceMode() == null) {
+            startActivity(Intent(this, DeviceSelectionActivity::class.java))
+        } else if (sessionManager.isLoggedIn()) {
             startActivity(Intent(this, HomeActivity::class.java))
         } else {
             startActivity(Intent(this, LoginActivity::class.java))

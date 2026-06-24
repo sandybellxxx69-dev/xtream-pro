@@ -21,7 +21,18 @@ class SessionManager(context: Context) {
     fun getPassword(): String? = prefs.getString("PASSWORD", null)
     fun isLoggedIn(): Boolean = prefs.getBoolean("IS_LOGGED_IN", false)
 
+    fun getDeviceMode(): String? = prefs.getString("DEVICE_MODE", null)
+    fun setDeviceMode(mode: String) {
+        prefs.edit().putString("DEVICE_MODE", mode).apply()
+    }
+
     fun logout() {
-        prefs.edit().clear().apply()
+        prefs.edit().apply {
+            remove("SERVER_URL")
+            remove("USERNAME")
+            remove("PASSWORD")
+            putBoolean("IS_LOGGED_IN", false)
+            apply()
+        }
     }
 }

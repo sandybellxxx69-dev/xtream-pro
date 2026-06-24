@@ -30,6 +30,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.border
+import androidx.compose.ui.composed
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.graphicsLayer
 import coil.compose.AsyncImage
 import com.example.api.RetrofitClient
 import com.example.api.XtreamApi
@@ -37,6 +42,18 @@ import com.example.data.SessionManager
 import com.example.model.Category
 import com.example.ui.theme.*
 import kotlinx.coroutines.launch
+
+fun Modifier.tvFocusable(shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(16.dp), onClick: () -> Unit): Modifier = composed {
+    var isFocused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(if (isFocused) 1.05f else 1f, label = "scale")
+    val borderColor = if (isFocused) PrimaryRed else Color.Transparent
+    
+    this
+        .onFocusChanged { isFocused = it.isFocused }
+        .graphicsLayer(scaleX = scale, scaleY = scale)
+        .border(if (isFocused) 3.dp else 0.dp, borderColor, shape)
+        .clickable(onClick = onClick)
+}
 
 class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -162,7 +179,7 @@ fun LiveTvScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, 
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
                         .background(if (isSelected) PrimaryRed else Color.White.copy(alpha = 0.1f))
-                        .clickable { selectedCategory = category }
+                        .tvFocusable(shape = RoundedCornerShape(16.dp)) { selectedCategory = category }
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Text(category.categoryName, color = if (isSelected) Color.White else TextGray, fontSize = 14.sp)
@@ -183,7 +200,7 @@ fun LiveTvScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, 
                     Card(
                         colors = CardDefaults.cardColors(containerColor = SurfaceDark),
                         shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.clickable {
+                        modifier = Modifier.tvFocusable(shape = RoundedCornerShape(16.dp)) {
                             val url = "$serverUrl/live/$user/$pass/${stream.streamId}.m3u8"
                             onPlay(url)
                         }
@@ -264,7 +281,7 @@ fun VodScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, onP
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
                         .background(if (isSelected) PrimaryRed else Color.White.copy(alpha = 0.1f))
-                        .clickable { selectedCategory = category }
+                        .tvFocusable(shape = RoundedCornerShape(16.dp)) { selectedCategory = category }
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Text(category.categoryName, color = if (isSelected) Color.White else TextGray, fontSize = 14.sp)
@@ -285,7 +302,7 @@ fun VodScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, onP
                     Card(
                         colors = CardDefaults.cardColors(containerColor = SurfaceDark),
                         shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.clickable {
+                        modifier = Modifier.tvFocusable(shape = RoundedCornerShape(16.dp)) {
                             val ext = stream.containerExtension ?: "mp4"
                             val url = "$serverUrl/movie/$user/$pass/${stream.streamId}.$ext"
                             onPlay(url)
@@ -393,7 +410,7 @@ fun SeriesScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, 
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = SurfaceDark),
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
-                                    .clickable {
+                                    .tvFocusable(shape = RoundedCornerShape(12.dp)) {
                                         val ext = episode.containerExtension ?: "mp4"
                                         val url = "$serverUrl/series/$user/$pass/${episode.id}.$ext"
                                         onPlay(url)
@@ -424,7 +441,7 @@ fun SeriesScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, 
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
                             .background(if (isSelected) PrimaryRed else Color.White.copy(alpha = 0.1f))
-                            .clickable { selectedCategory = category }
+                            .tvFocusable(shape = RoundedCornerShape(16.dp)) { selectedCategory = category }
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Text(category.categoryName, color = if (isSelected) Color.White else TextGray, fontSize = 14.sp)
@@ -445,7 +462,7 @@ fun SeriesScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, 
                         Card(
                             colors = CardDefaults.cardColors(containerColor = SurfaceDark),
                             shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.clickable {
+                            modifier = Modifier.tvFocusable(shape = RoundedCornerShape(16.dp)) {
                                 selectedSeries = series
                             }
                         ) {

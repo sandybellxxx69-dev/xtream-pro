@@ -21,6 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import com.example.api.RetrofitClient
 import com.example.data.SessionManager
 import com.example.ui.theme.MyApplicationTheme
@@ -57,6 +63,9 @@ fun LoginScreen(onLoginSuccess: (String, String, String) -> Unit) {
     var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
+    val userFocus = remember { FocusRequester() }
+    val passFocus = remember { FocusRequester() }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -66,7 +75,7 @@ fun LoginScreen(onLoginSuccess: (String, String, String) -> Unit) {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(0.8f) // Making it slightly narrower for TV
         ) {
             Text(
                 text = "XtreamPro",
@@ -82,6 +91,8 @@ fun LoginScreen(onLoginSuccess: (String, String, String) -> Unit) {
                 label = { Text("Server URL") },
                 modifier = Modifier.fillMaxWidth().testTag("server_input"),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { userFocus.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = PrimaryRed,
                     focusedTextColor = Color.White,
@@ -94,8 +105,10 @@ fun LoginScreen(onLoginSuccess: (String, String, String) -> Unit) {
                 value = username,
                 onValueChange = { username = it },
                 label = { Text("Username") },
-                modifier = Modifier.fillMaxWidth().testTag("username_input"),
+                modifier = Modifier.fillMaxWidth().testTag("username_input").focusRequester(userFocus),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { passFocus.requestFocus() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = PrimaryRed,
                     focusedTextColor = Color.White,
@@ -109,8 +122,9 @@ fun LoginScreen(onLoginSuccess: (String, String, String) -> Unit) {
                 onValueChange = { password = it },
                 label = { Text("Password") },
                 visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth().testTag("password_input"),
+                modifier = Modifier.fillMaxWidth().testTag("password_input").focusRequester(passFocus),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = PrimaryRed,
                     focusedTextColor = Color.White,
