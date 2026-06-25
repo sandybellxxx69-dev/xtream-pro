@@ -81,6 +81,20 @@ class HomeActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun TvButton(text: String, onClick: () -> Unit, backgroundColor: Color) {
+    Box(
+        modifier = Modifier
+            .tvFocusable(shape = RoundedCornerShape(12.dp), onClick = onClick)
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 24.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text, color = Color.White, fontWeight = FontWeight.Bold)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onLogout: () -> Unit, onPlay: (String) -> Unit) {
@@ -92,15 +106,15 @@ fun HomeScreen(onLogout: () -> Unit, onPlay: (String) -> Unit) {
     val api = remember { RetrofitClient.getApi(serverUrl) }
 
     var selectedTab by remember { mutableStateOf(0) } // 0: Live, 1: Movies, 2: Series
-    var showBanner by remember { mutableStateOf(true) }
+    var showBanner by remember { mutableStateOf(sessionManager.shouldShowBanner()) }
     
     if (showBanner) {
         androidx.compose.ui.window.Dialog(onDismissRequest = { showBanner = false }) {
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .tvFocusable(shape = RoundedCornerShape(16.dp)) { showBanner = false }
+                    .background(BackgroundDark)
             ) {
                 AsyncImage(
                     model = R.drawable.trabaja_desde_casa_banner_1782381746960,
@@ -108,11 +122,26 @@ fun HomeScreen(onLogout: () -> Unit, onPlay: (String) -> Unit) {
                     modifier = Modifier.fillMaxWidth().aspectRatio(16f/9f),
                     contentScale = ContentScale.Crop
                 )
-                IconButton(
-                    onClick = { showBanner = false },
-                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                    TvButton(
+                        text = "Me interesa",
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://wa.me/3333523782"))
+                            context.startActivity(intent)
+                        },
+                        backgroundColor = PrimaryRed
+                    )
+                    TvButton(
+                        text = "No me interesa",
+                        onClick = {
+                            sessionManager.setBannerDismissed()
+                            showBanner = false
+                        },
+                        backgroundColor = SurfaceDark
+                    )
                 }
             }
         }

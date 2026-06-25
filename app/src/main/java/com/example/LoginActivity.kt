@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.foundation.border
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.focus.FocusRequester
@@ -68,6 +70,30 @@ fun LoginScreen(onLoginSuccess: (String, String, String) -> Unit) {
 
     val userFocus = remember { FocusRequester() }
     val passFocus = remember { FocusRequester() }
+    val loginFocus = remember { FocusRequester() }
+
+    val performLogin = {
+        if (serverUrl.isBlank() || username.isBlank() || password.isBlank()) {
+            Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+        } else {
+            isLoading = true
+            coroutineScope.launch {
+                try {
+                    val api = RetrofitClient.getApi(serverUrl)
+                    val response = api.login(username, password)
+                    if (response.userInfo?.auth == 1) {
+                        onLoginSuccess(serverUrl, username, password)
+                    } else {
+                        Toast.makeText(context, "Invalid credentials", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Connection failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                } finally {
+                    isLoading = false
+                }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -128,6 +154,7 @@ fun LoginScreen(onLoginSuccess: (String, String, String) -> Unit) {
                 modifier = Modifier.fillMaxWidth().testTag("password_input").focusRequester(passFocus),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { performLogin() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = PrimaryRed,
                     focusedTextColor = Color.White,
@@ -136,33 +163,17 @@ fun LoginScreen(onLoginSuccess: (String, String, String) -> Unit) {
             )
             Spacer(modifier = Modifier.height(32.dp))
 
+            var isLoginFocused by remember { mutableStateOf(false) }
+
             Button(
-                onClick = {
-                    if (serverUrl.isBlank() || username.isBlank() || password.isBlank()) {
-                        Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    isLoading = true
-                    coroutineScope.launch {
-                        try {
-                            val api = RetrofitClient.getApi(serverUrl)
-                            val response = api.login(username, password)
-                            if (response.userInfo?.auth == 1) {
-                                onLoginSuccess(serverUrl, username, password)
-                            } else {
-                                Toast.makeText(context, "Invalid credentials", Toast.LENGTH_SHORT).show()
-                            }
-                        } catch (e: Exception) {
-                            Toast.makeText(context, "Connection failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                        } finally {
-                            isLoading = false
-                        }
-                    }
-                },
+                onClick = { performLogin() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .testTag("login_button"),
+                    .testTag("login_button")
+                    .focusRequester(loginFocus)
+                    .onFocusChanged { state -> isLoginFocused = state.isFocused }
+                    .border(if (isLoginFocused) 3.dp else 0.dp, if (isLoginFocused) Color.White else Color.Transparent, RoundedCornerShape(12.dp)),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryRed)
             ) {

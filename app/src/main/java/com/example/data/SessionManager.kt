@@ -26,6 +26,11 @@ class SessionManager(context: Context) {
         prefs.edit().putString("DEVICE_MODE", mode).apply()
     }
 
+    fun shouldShowBanner(): Boolean = !prefs.getBoolean("BANNER_DISMISSED", false)
+    fun setBannerDismissed() {
+        prefs.edit().putBoolean("BANNER_DISMISSED", true).apply()
+    }
+
     fun logout() {
         prefs.edit().apply {
             remove("SERVER_URL")
