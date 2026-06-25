@@ -58,6 +58,9 @@ fun Modifier.tvFocusable(shape: androidx.compose.ui.graphics.Shape = RoundedCorn
 class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (SessionManager(this).getDeviceMode() == "TV") {
+            requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
@@ -216,7 +219,7 @@ fun LiveTvScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, 
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = PrimaryRed) }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+                columns = GridCells.Adaptive(160.dp),
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -255,8 +258,9 @@ fun LiveTvScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, 
                                 }
                             }
                             Column(modifier = Modifier.padding(12.dp)) {
-                                Text(stream.name, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                                Text("Live TV", color = TextGray, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                                val cleanName = stream.name.replaceFirst(Regex("^\\d+\\s*[-|:]?\\s*"), "").trim()
+                                Text(cleanName, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                                Text("Live", color = TextGray, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
                             }
                         }
                     }
@@ -318,7 +322,7 @@ fun VodScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, onP
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = PrimaryRed) }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
+                columns = GridCells.Adaptive(120.dp),
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -478,7 +482,7 @@ fun SeriesScreen(api: XtreamApi, user: String, pass: String, serverUrl: String, 
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = PrimaryRed) }
             } else {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
+                    columns = GridCells.Adaptive(120.dp),
                     contentPadding = PaddingValues(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)

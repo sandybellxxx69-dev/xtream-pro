@@ -36,6 +36,9 @@ import kotlinx.coroutines.launch
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (SessionManager(this).getDeviceMode() == "TV") {
+            requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
