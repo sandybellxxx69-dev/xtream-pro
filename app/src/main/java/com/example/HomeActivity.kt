@@ -89,11 +89,36 @@ fun HomeScreen(onLogout: () -> Unit, onPlay: (String) -> Unit) {
     val api = remember { RetrofitClient.getApi(serverUrl) }
 
     var selectedTab by remember { mutableStateOf(0) } // 0: Live, 1: Movies, 2: Series
+    var showBanner by remember { mutableStateOf(true) }
     
+    if (showBanner) {
+        androidx.compose.ui.window.Dialog(onDismissRequest = { showBanner = false }) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .tvFocusable(shape = RoundedCornerShape(16.dp)) { showBanner = false }
+            ) {
+                AsyncImage(
+                    model = R.drawable.trabaja_desde_casa_banner_1782381746960,
+                    contentDescription = "Trabaja desde casa banner",
+                    modifier = Modifier.fillMaxWidth().aspectRatio(16f/9f),
+                    contentScale = ContentScale.Crop
+                )
+                IconButton(
+                    onClick = { showBanner = false },
+                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                ) {
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                }
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("XtreamPro", fontWeight = FontWeight.Bold, color = Color.White) },
+                title = { Text("Pirate_TV", fontWeight = FontWeight.Bold, color = Color.White) },
                 actions = {
                     IconButton(onClick = onLogout) {
                         Icon(Icons.Default.ExitToApp, contentDescription = "Logout", tint = Color.White)

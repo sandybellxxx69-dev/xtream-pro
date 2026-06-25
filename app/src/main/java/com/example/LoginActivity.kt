@@ -78,7 +78,7 @@ fun LoginScreen(onLoginSuccess: (String, String, String) -> Unit) {
             modifier = Modifier.fillMaxWidth(0.8f) // Making it slightly narrower for TV
         ) {
             Text(
-                text = "XtreamPro",
+                text = "Pirate_TV",
                 color = Color.White,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,

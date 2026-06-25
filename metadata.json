@@ -1,5 +1,5 @@
 {
-  "name": "XtreamPro",
+  "name": "Pirate_TV",
   "description": "IPTV Player similar to Xtream Codes",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

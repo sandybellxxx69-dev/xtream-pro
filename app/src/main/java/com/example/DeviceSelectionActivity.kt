@@ -63,7 +63,7 @@ fun DeviceSelectionScreen(onSelect: (String) -> Unit) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "Welcome to XtreamPro",
+                text = "Welcome to Pirate_TV",
                 color = Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
